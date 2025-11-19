@@ -127,17 +127,23 @@ class HardLimitingWorker(BaseWorker):
         job.started_at = utcnow()
         while True:
             try:
-                with self.death_penalty_class(self.job_monitoring_interval, HorseMonitorTimeoutException):
+                with self.death_penalty_class(
+                    self.job_monitoring_interval, HorseMonitorTimeoutException
+                ):
                     retpid, ret_val, rusage = self.wait_for_horse()
                 break
             except HorseMonitorTimeoutException:
                 # Horse has not exited yet and is still running.
                 # Send a heartbeat to keep the worker alive.
-                self.set_current_job_working_time((utcnow() - job.started_at).total_seconds())
+                self.set_current_job_working_time(
+                    (utcnow() - job.started_at).total_seconds()
+                )
 
                 job.refresh()
                 # Kill the job from this side if something is really wrong (interpreter lock/etc).
-                if job.timeout != -1 and self.current_job_working_time > (job.timeout + 60):  # type: ignore
+                if job.timeout != -1 and self.current_job_working_time > (
+                    job.timeout + 60
+                ):  # type: ignore
                     self.heartbeat(self.job_monitoring_interval + 60)
                     self.kill_horse()
                     self.wait_for_horse()
@@ -177,13 +183,21 @@ class HardLimitingWorker(BaseWorker):
             self.log.warning("Job stopped by user, moving job to FailedJobRegistry")
             if job.stopped_callback:
                 job.execute_stopped_callback(self.death_penalty_class)
-            self.handle_job_failure(job, queue=queue, exc_string="Job stopped by user, work-horse terminated.")
+            self.handle_job_failure(
+                job,
+                queue=queue,
+                exc_string="Job stopped by user, work-horse terminated.",
+            )
         elif job_status not in [JobStatus.FINISHED, JobStatus.FAILED]:
             if not job.ended_at:
                 job.ended_at = utcnow()
 
             # Unhandled failure: move the job to the failed queue
-            signal_msg = f" (signal {os.WTERMSIG(ret_val)})" if ret_val and os.WIFSIGNALED(ret_val) else ""
+            signal_msg = (
+                f" (signal {os.WTERMSIG(ret_val)})"
+                if ret_val and os.WIFSIGNALED(ret_val)
+                else ""
+            )
             exc_string = f"Work-horse terminated unexpectedly; waitpid returned {ret_val}{signal_msg}; "
             self.log.warning("Moving job to FailedJobRegistry (%s)", exc_string)
 
