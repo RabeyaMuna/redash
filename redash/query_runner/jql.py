@@ -34,13 +34,13 @@ class ResultSet:
 
 def parse_issue(issue, field_mapping):  # noqa: C901
     result = OrderedDict()
-    
+
     # Handle API v3 response format: key field may be missing, use id as fallback
     result["key"] = issue.get("key", issue.get("id", "unknown"))
-    
+
     # Handle API v3 response format: fields may be missing
     fields = issue.get("fields", {})
-    for k, v in fields.items():  #
+    for k, v in fields.items():
         output_name = field_mapping.get_output_field_name(k)
         member_names = field_mapping.get_dict_members(k)
 
@@ -193,7 +193,7 @@ class JiraJQL(BaseHTTPQueryRunner):
             results = parse_count(data)
         else:
             results = parse_issues(data, field_mapping)
-            
+
             # API v3 uses token-based pagination instead of startAt/total
             while not data.get("isLast", True) and "nextPageToken" in data:
                 query["nextPageToken"] = data["nextPageToken"]
