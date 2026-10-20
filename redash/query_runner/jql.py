@@ -34,10 +34,10 @@ class ResultSet:
 
 def parse_issue(issue, field_mapping):  # noqa: C901
     result = OrderedDict()
-    
+
     # Handle API v3 response format: key field may be missing, use id as fallback
     result["key"] = issue.get("key", issue.get("id", "unknown"))
-    
+
     # Handle API v3 response format: fields may be missing
     fields = issue.get("fields", {})
     for k, v in fields.items():  #
@@ -49,7 +49,9 @@ def parse_issue(issue, field_mapping):  # noqa: C901
                 # if field mapping with dict member mappings defined get value of each member
                 for member_name in member_names:
                     if member_name in v:
-                        result[field_mapping.get_dict_output_field_name(k, member_name)] = v[member_name]
+                        result[
+                            field_mapping.get_dict_output_field_name(k, member_name)
+                        ] = v[member_name]
 
             else:
                 # these special mapping rules are kept for backwards compatibility
@@ -74,7 +76,9 @@ def parse_issue(issue, field_mapping):  # noqa: C901
                             if member_name in listItem:
                                 listValues.append(listItem[member_name])
                     if len(listValues) > 0:
-                        result[field_mapping.get_dict_output_field_name(k, member_name)] = ",".join(listValues)
+                        result[
+                            field_mapping.get_dict_output_field_name(k, member_name)
+                        ] = ",".join(listValues)
 
             else:
                 # otherwise support list values only for non-dict items
@@ -167,7 +171,9 @@ class JiraJQL(BaseHTTPQueryRunner):
 
     def run_query(self, query, user):
         # Updated to API v3 endpoint, fix double slash issue
-        jql_url = "{}/rest/api/3/search/jql".format(self.configuration["url"].rstrip("/"))
+        jql_url = "{}/rest/api/3/search/jql".format(
+            self.configuration["url"].rstrip("/")
+        )
 
         query = json_loads(query)
         query_type = query.pop("queryType", "select")
@@ -193,7 +199,7 @@ class JiraJQL(BaseHTTPQueryRunner):
             results = parse_count(data)
         else:
             results = parse_issues(data, field_mapping)
-            
+
             # API v3 uses token-based pagination instead of startAt/total
             while not data.get("isLast", True) and "nextPageToken" in data:
                 query["nextPageToken"] = data["nextPageToken"]
