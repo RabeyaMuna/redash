@@ -109,6 +109,11 @@ ARG POETRY_OPTIONS="--no-root --no-interaction --no-ansi"
 # for LDAP authentication, install with `ldap3` group
 # disabled by default due to GPL license conflict
 ARG install_groups="main,all_ds,dev"
+# Build legacy packages that require pkg_resources before Poetry creates isolated
+# build environments with setuptools versions where pkg_resources was removed.
+RUN python3 -m pip install --no-cache-dir setuptools==75.3.2 && \
+  python3 -m pip install --no-cache-dir --no-build-isolation --no-deps \
+    cassandra-driver==3.21.0 impyla==0.16.0
 RUN /etc/poetry/bin/poetry install --only $install_groups $POETRY_OPTIONS
 
 COPY --chown=redash . /app
