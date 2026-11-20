@@ -28,3 +28,8 @@ npm-debug.log
 
 client/cypress/screenshots
 client/cypress/videos
+# Shell redirection artifacts
+=[0-9]*
+>[0-9]*
+*.tmp
+*.log
